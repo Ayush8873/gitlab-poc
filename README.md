@@ -43,51 +43,88 @@ Use the built-in continuous integration in GitLab.
 * [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
 
 ***
+# CloudNova Website CI/CD PoC
 
-# Editing this README
+## Project Overview
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+This project demonstrates containerized deployment of a static CloudNova Technologies website using Docker, GitLab Community Edition (CE), GitLab Runner, and an AWS EC2 instance.
 
-## Suggestions for a good README
+The objective is to automate website building, basic application testing, and deployment through a CI/CD pipeline.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## Architecture
 
-## Name
-Choose a self-explaining name for your project.
+Developer → GitLab Repository → GitLab CI/CD Pipeline → GitLab Runner → Docker Image → Test Container → Deployment Container on AWS EC2
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Technologies Used
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- AWS EC2 – Hosts GitLab CE, GitLab Runner, and the website container.
+- GitLab CE – Stores the source code and manages the CI/CD pipeline.
+- GitLab Runner – Executes pipeline jobs.
+- Docker – Packages and runs the website.
+- Nginx – Serves the static HTML website.
+- Bash and curl – Support pipeline execution and HTTP health checks.
+- GitHub – Used as an additional repository for source-code sharing and documentation.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Project Structure
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```text
+cloudnova-gitlab-cicd-poc/
+├── index.html
+├── Dockerfile
+├── .dockerignore
+├── .gitignore
+├── .gitlab-ci.yml
+└── README.md
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## CI/CD Pipeline
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### 1. Build
+Builds a Docker image from the website source code and verifies that the image exists.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### 2. Test
+Starts a temporary Docker container, checks the HTTP response, and verifies expected website content.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### 3. Deploy
+Runs the deployment container on the EC2 host and checks that the website responds successfully.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Deployment
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+The pipeline deploys the website container on host port 8081, mapped to port 80 inside the container.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Website URL: http://54.158.53.67:8081
 
-## License
-For open source projects, say how it is licensed.
+The URL requires the appropriate AWS EC2 security group rule for external access.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## How to Run Locally
+
+Build the image:
+
+```bash
+docker build -t cloudnova-website .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 8081:80 cloudnova-website
+```
+
+Open `http://localhost:8081` in your browser.
+
+## Current Scope and Limitations
+
+- This is a proof of concept, not a production-ready deployment.
+- The pipeline uses GitLab CI/CD; uploading the source code to GitHub does not migrate the pipeline to GitHub Actions.
+- The deployment replaces the existing container and may cause brief downtime.
+- HTTPS, production-grade rollback, and further security hardening are follow-up improvements.
+
+## Learning Outcomes
+
+- Creating and running Docker containers.
+- Configuring GitLab CI/CD stages.
+- Using a self-hosted GitLab Runner.
+- Performing HTTP health checks.
+- Deploying a containerized website on AWS EC2.
+- Documenting an infrastructure and CI/CD proof of concept.
+
